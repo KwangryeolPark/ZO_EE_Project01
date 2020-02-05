@@ -36,6 +36,7 @@
 #define modeSetLiquidVolume 3
 #define modeSetLiquidInfo 4
 #define modeSetActivePump 5
+#define modeSetComplete 6
 #define modeSetShowLiquidRateErrorMessage 100
 #define ENABLE  true
 #define DISABLE false

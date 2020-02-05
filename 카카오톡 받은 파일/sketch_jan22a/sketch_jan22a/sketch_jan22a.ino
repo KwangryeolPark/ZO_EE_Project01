@@ -43,7 +43,35 @@ void loop() {
   checkButtonCnt(&checkCnt, checkActive); //버튼 눌린 횟수는 checkCnt에 저장, checkActive는 버튼 기능 유무
 
   if(checkActive == ENABLE) {
-    if (checkCnt % 5);
+    switch (checkCnt % 7) {
+      case 0:
+        mode = modeSetLiquidRate1:
+        break;
+
+      case 1:
+        mode = modeSetLiquidRate2:
+        break;
+
+      case 2:
+        mode = modeSetLiquidRate3:
+        break;
+
+      case 3:
+        mode = modeSetLiquidVolume;
+        break;
+
+      case 4:
+        mode = modeSetLiquidInfo;
+        break;
+
+      case 5:
+        mode = modeSetActivePump;
+        break;
+
+      case 6:
+        mode = modeSetComplete;
+        break;
+    }
   }
 
 
@@ -55,6 +83,7 @@ void loop() {
 
   switch (mode) {
     case modeSetLiquidRate1:
+      checkActive = ENABLE;
       if(encoderRotateDirection == CW) liquidRate[0]++;
       else if(encoderRotateDirection == CCW) liquidRate[0]--;
       liquidRate[0] = constrain(liquidRate[0], 0, 10);
@@ -62,6 +91,7 @@ void loop() {
       break;
 
       case modeSetLiquidRate2:
+        checkActive = ENABLE;
         if(encoderRotateDirection == CW) liquidRate[1]++;
         else if(encoderRotateDirection == CCW) liquidRate[1]--;
         liquidRate[1] = constrain(liquidRate[1], 0, 10);
@@ -69,6 +99,7 @@ void loop() {
         break;
 
         case modeSetLiquidRate3:
+          checkActive = ENABLE;
           if(encoderRotateDirection == CW) liquidRate[2]++;
           else if(encoderRotateDirection == CCW) liquidRate[2]--;
           liquidRate[2] = constrain(liquidRate[2], 0, 10);
@@ -77,9 +108,11 @@ void loop() {
 
 
     case modeSetLiquidVolume:
+      checkActive = ENABLE;
       uint8_t totalLiquidRate = liquidRate[0] + liquidRate[1] + liquidRate[2];
       if (totalLiquidRate == 0) {
         mode = modeSetShowLiquidRateErrorMessage;
+        checkActive = DISABLE;
         break;
       }
       liquidVolume[0] = (totalLiquidVolume / totalLiquidRate) * liquidRate[0];
@@ -101,6 +134,7 @@ void loop() {
         select = 0;
         checkButtonCnt(&tempCnt, ENABLE);
         if(tempCnt != 0) {
+//          checkActive = ENABLE;
           mode = modeSetLiquidRate1;
           checkCnt = 0;
           break;
@@ -128,12 +162,24 @@ void loop() {
         else  timeByVolume = liquidVolume[i] * mLToMilliSecondsC;
         do {
           timeGap = millis() - presentTime;
-          if(i == 0)  showPumpAProcess(uint16_t(float(timeGap / timeByVolume) * 100.0));
+          showPumpsProcess(i, uint16_t(float(timeGap / timeByVolume) * 100.0));
+/*          if(i == 0)  showPumpAProcess(uint16_t(float(timeGap / timeByVolume) * 100.0));
           else if(i == 1) showPumpBProcess(uint16_t(float(timeGap / timeByVolume) * 100.0));
-          else  showPumpCProcess(uint16_t(float(timeGap / timeByVolume) * 100.0));
+          else  showPumpCProcess(uint16_t(float(timeGap / timeByVolume) * 100.0));*/
         } while (timeGap <= timeByVolume + 10);
       }
+      delay(3000);
+      activeBuzzer(2000);
+      checkCnt++;
+      mode = modeSetComplete;
+      break;
       ////////다음 모드로 넘어 가는 구문 적기
+
+      case modeSetComplete:
+        showCompMessage("Remove the bottle\nPress the button");
+        checkActive = ENABLE;
+        delay(300);
+      break;
 
 
 
@@ -150,6 +196,11 @@ void loop() {
   }
 
   pEncoderCnt = encoderCnt;
+
+
+
+  static uint16_t pMode = mode;
+  if(mode != pMode) lcd.clear();
 
 }
 
@@ -209,9 +260,10 @@ void encoderCounting(void) {
   }*/
 
 }
-
+/*
 void showErrorMessage(String msg) {
-
+  lcd.setCursor(0, 0);
+  lcd.print(msg);
 }
 
 void showPumpAProcess(uint16_t Time) {
@@ -222,6 +274,18 @@ void showPumpBProcess(uint16_t Time) {
 }
 void showPumpCProcess(uint16_t Time) {
 
+}*/
+
+void showPumpsProcess(int i, uint16_t percent) {
+  lcd.setCursor(0, 0);
+  lcd.print("    Process");
+  lcd.setCursor(i + 1, 0);
+  lcd.print("*" + String(i + 1) + ": ");
+
+  uint16_t p100 = percent;
+  p100 = percent;
+  for(int i = 0; i < int(map(p100, 0, 100, 0, 10)); i++) lcd.write(0xFF);
+  lcd.print(" " + String(percent) + "  ");
 }
 
 void showLiquidMessage(uint8_t *rate, int select) {
@@ -241,4 +305,14 @@ void showLiquidMessage(uint8_t *rate, int select) {
     lcd.setCursor(3, 2);
     lcd.print(" ");
   }
+}
+
+
+void showCompMessage(String msg) {
+  lcd.setCursor(0, 0);
+  lcd.print(msg);
+}
+
+void activeBuzzer(int de) {
+
 }
