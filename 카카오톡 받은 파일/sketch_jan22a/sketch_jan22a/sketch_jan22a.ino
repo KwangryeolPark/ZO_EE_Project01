@@ -5,7 +5,9 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4); //or 0x3F
 /*
  */
-int64_t encoderCnt = 0;
+int64_t encoderCnt = 0; //엔코더 펄스 값이 저장되어있음
+int64_t pEncoderCnt = 0;//이전 엔코더 펄스 값이 저장되어있음
+uint8_t encoderRotateDirection = STOP;  //엔코더의 회전 방향 값이 저장되어있음
 
 void setup() {
   // put your setup code here, to run once:
@@ -38,14 +40,41 @@ void loop() {
   static boolean checkActive = ENABLE;
   static uint16_t mode = modeSetLiquidRate1;
 
-  checkButtonCnt(&checkCnt, checkActive);
+  checkButtonCnt(&checkCnt, checkActive); //버튼 눌린 횟수는 checkCnt에 저장, checkActive는 버튼 기능 유무
 
-  if (checkCnt % 5);
+  if(checkActive == ENABLE) {
+    if (checkCnt % 5);
+  }
+
+
+  if(encoderCnt > pEncoderCnt) encoderRotateDirection = CW;
+  else if(encoderCnt < pEncoderCnt) encoderRotateDirection = CCW;
+  else encoderRotateDirection = STOP;
+
+
 
   switch (mode) {
     case modeSetLiquidRate1:
-      showFirstMessage(liquidRate);
+      if(encoderRotateDirection == CW) liquidRate[0]++;
+      else if(encoderRotateDirection == CCW) liquidRate[0]--;
+      liquidRate[0] = constrain(liquidRate[0], 0, 10);
+      showRateMessage(liquidRate, 0);
       break;
+
+      case modeSetLiquidRate2:
+        if(encoderRotateDirection == CW) liquidRate[1]++;
+        else if(encoderRotateDirection == CCW) liquidRate[1]--;
+        liquidRate[1] = constrain(liquidRate[1], 0, 10);
+        showRateMessage(liquidRate, 1);
+        break;
+
+        case modeSetLiquidRate3:
+          if(encoderRotateDirection == CW) liquidRate[2]++;
+          else if(encoderRotateDirection == CCW) liquidRate[2]--;
+          liquidRate[2] = constrain(liquidRate[2], 0, 10);
+          showRateMessage(liquidRate, 2);
+          break;
+
 
     case modeSetLiquidVolume:
       uint8_t totalLiquidRate = liquidRate[0] + liquidRate[1] + liquidRate[2];
@@ -56,18 +85,35 @@ void loop() {
       liquidVolume[0] = (totalLiquidVolume / totalLiquidRate) * liquidRate[0];
       liquidVolume[1] = (totalLiquidVolume / totalLiquidRate) * liquidRate[1];
       liquidVolume[2] = (totalLiquidVolume / totalLiquidRate) * liquidRate[2];
+      mode = modeSetLiquidInfo;
+      checkCnt++;
 
       break;
 
-    case modeSetShowLiquidRateErrorMessage:
-      showErrorMessage("Total Liquid Rate is 0!!");
-      delay(2000);
-      mode = modeSetLiquidRate1;
-      checkCnt = 0;
-      break;
+
 
     case modeSetLiquidInfo:
-
+      checkActive = DISABLE;
+      static int select = 0;
+      int tempCnt = 0;
+      showLiquidMessage(liquidRate, select);
+      if(encoderRotateDirection == CW) {
+        select = 0;
+        checkButtonCnt(&tempCnt, ENABLE);
+        if(tempCnt != 0) {
+          mode = modeSetLiquidRate1;
+          checkCnt = 0;
+          break;
+        }
+      } else if(encoderRotateDirection == CCW) {
+        select = 1;
+        checkButtonCnt(&tempCnt, ENABLE);
+        if(tempCnt != 0) {
+          mode = modeSetActivePump;
+          checkCnt = 0;
+          break;
+        }
+      }
       ///Yes or No 선택지를 만들어서 Yes를 선택하면 modeSetActivePump모드로
       ///No를 선택하면 modeSetLiquidRate1모드로 돌아가기
       break;
@@ -88,7 +134,23 @@ void loop() {
         } while (timeGap <= timeByVolume + 10);
       }
       ////////다음 모드로 넘어 가는 구문 적기
+
+
+
+
+
+
+      case modeSetShowLiquidRateErrorMessage:
+        showErrorMessage("Total Liquid Rate is 0!!");
+        delay(2000);
+        mode = modeSetLiquidRate1;
+        checkCnt = 0;
+        break;
+
   }
+
+  pEncoderCnt = encoderCnt;
+
 }
 
 
@@ -119,7 +181,21 @@ void checkButtonCnt(int *data, boolean flag) {
   }
 }
 
-void showFirstMessage(uint8_t *rate) {
+void showRateMessage(uint8_t *rate, uint8_t select) {
+  lcd.setCursor(0, 0);
+  lcd.print("    Liquids Rate    ");
+
+  for(int j = 0; j < 3; j++) {
+    lcd.setCursor(j + 1, 0);
+    lcd.print(((select == j) ? "*":" ") + String(j + 1) + " : ");
+    lcd.setCursor(j + 1, 4);
+    for(int i = 0; i < 10; i++) {
+      if(i < rate[j])  lcd.write(0xFF);
+      else lcd.write(0x00);
+    }
+    lcd.setCursor(j + 1, 17);
+    lcd.print(String(rate[j]) + String("  "));
+  }
 
 }
 
@@ -127,10 +203,11 @@ void encoderCounting(void) {
   if (encoderStatusA) {
     if (!encoderStatusA) encoderCnt++;
     else encoderCnt--;
-  } else {
+  }/* else {
     if (encoderStatusB) encoderCnt++;
     else encoderCnt--;
-  }
+  }*/
+
 }
 
 void showErrorMessage(String msg) {
@@ -145,4 +222,23 @@ void showPumpBProcess(uint16_t Time) {
 }
 void showPumpCProcess(uint16_t Time) {
 
+}
+
+void showLiquidMessage(uint8_t *rate, int select) {
+  lcd.setCursor(0, 0);
+  lcd.print("    1 :  2  :  3");
+  lcd.setCursor(1, 0);
+  lcd.print("   " + ((rate[0] != 10) ? String(rate[0]) : " ") + " : " + ((rate[1] != 10) ? String(rate[1]) : " ") + " : " + ((rate[2] != 10) ? String(rate[2]) : " ") + "    ");
+  lcd.setCursor(2, 0);
+  lcd.print("       300mL         ");
+  lcd.setCursor(3, 0);
+  lcd.print("   Okay     Back    ");
+  if(select == 0) { //Back
+    lcd.setCursor(3, 11);
+    lcd.print("*");
+  }
+  else {
+    lcd.setCursor(3, 2);
+    lcd.print(" ");
+  }
 }

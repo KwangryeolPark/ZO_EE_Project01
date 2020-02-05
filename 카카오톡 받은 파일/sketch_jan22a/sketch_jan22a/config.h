@@ -33,58 +33,15 @@
 #define modeSetLiquidRate1  0
 #define modeSetLiquidRate2  1
 #define modeSetLiquidRate3  2
-#define modeSetLiquidInfo 3
-#define modeSetActivePump 4
-#define modeSetLiquidVolume 5
-#define modeSetShowLiquidRateErrorMessage 6
+#define modeSetLiquidVolume 3
+#define modeSetLiquidInfo 4
+#define modeSetActivePump 5
+#define modeSetShowLiquidRateErrorMessage 100
 #define ENABLE  true
+#define DISABLE false
 
-byte bar[5][8] = {
-  { B10000,
-    B10000,
-    B10000,
-    B10000,
-    B10000,
-    B10000,
-    B10000,
-    B10000
-  },
-  { B11000,
-    B11000,
-    B11000,
-    B11000,
-    B11000,
-    B11000,
-    B11000,
-    B11000
-  },
-  { B11100,
-    B11100,
-    B11100,
-    B11100,
-    B11100,
-    B11100,
-    B11100,
-    B11100
-  },
-  { B11110,
-    B11110,
-    B11110,
-    B11110,
-    B11110,
-    B11110,
-    B11110,
-    B11110
-  },
-  { B11111,
-    B11111,
-    B11111,
-    B11111,
-    B11111,
-    B11111,
-    B11111,
-    B11111
-  }
-};
+#define STOP  0
+#define CW  1
+#define CCW 2
 
 #endif
