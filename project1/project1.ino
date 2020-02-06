@@ -20,7 +20,7 @@ int rate1;
 int rate2;
 int rate3;
 int x = 0;  //버튼이 눌린 횟수
-
+ 
 void setup() {
   pinMode(7, INPUT_PULLUP);
   lcd.init();
