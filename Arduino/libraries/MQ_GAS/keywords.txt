@@ -1,0 +1,33 @@
+#######################################
+#######################################
+# Class
+#######################################
+
+MQ_GAS	KEYWORD1
+
+
+#######################################
+# Methods and Functions
+#######################################
+
+init			KEYWORD2
+
+init			KEYWORD2
+setAnalogPin			KEYWORD2
+calibrate			KEYWORD2
+setR2			KEYWORD2
+setGraphPoints			KEYWORD2
+setGas			KEYWORD2
+density			KEYWORD2
+
+#######################################
+# Constants
+#######################################
+
+
+CAL_10_Times 		LITERAL1
+CAL_100_Times 		LITERAL1
+MQ_3 		LITERAL1
+Alcohol 		LITERAL1
+_MQ3_Fixed_Rs_R0 		LITERAL1
+_MQ3_Fixed_mg_L 		LITERAL1
